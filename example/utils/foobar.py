@@ -15,4 +15,4 @@ class FooBar:
 
         # TODO: Figure a way out to properly let users document parameters & return values
         """
-        return "foobar\n" * amount
+        return ("foobar\n" * amount).strip()
