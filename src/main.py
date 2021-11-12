@@ -2,6 +2,7 @@
 #  Full MIT License can be found in `LICENSE` at the project root.
 
 """The main script, so this is what does the hard work!"""
+import re
 from logging import basicConfig, DEBUG
 
 from click import group, option
@@ -23,8 +24,9 @@ def cli(verbose: bool):
 def generate(directory: str, match: str, out: str):
     """Generate the documentation"""
     directory = directory or "./"
+    match = re.compile(match or ".(py|go)")
 
-    parser = Parser(directory)
+    parser = Parser(directory, match)
 
 
 if __name__ == "__main__":

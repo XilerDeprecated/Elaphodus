@@ -12,6 +12,7 @@ Using ultibar is very easy, you can use it like this:
 from sys import argv
 
 import utils.foobar as foobar
+import utils.print.printer as printer
 
 
 def main():
@@ -24,9 +25,9 @@ def main():
         argument = argv[2]
 
     if keyword == "run":
-        print(foobar.FooBar(int(argument) or 1)())
+        printer.out(foobar.FooBar(int(argument) or 1)())
     else:
-        print("Unsupported command!")
+        printer.out("Unsupported command!")
 
 
 if __name__ == "__main__":
