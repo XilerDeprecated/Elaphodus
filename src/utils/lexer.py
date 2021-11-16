@@ -16,6 +16,7 @@ class TokenTypes(Enum):
 
     CLASS = "CLASS"
     FUNCTION = "FUNCTION"
+    DECORATOR = "DECORATOR"
 
     IF = "IF"
     ELIF = "ELIF"
@@ -36,13 +37,14 @@ class TokenType:
 start_tokens = {
     '#': TokenType(TokenTypes.COMMENT, '#'),
     '"""': TokenType(TokenTypes.MULTILINE_COMMENT, '"""', '"""'),
-    'import': TokenType(TokenTypes.IMPORT, 'import'),
-    'from': TokenType(TokenTypes.FROM_IMPORT, 'from'),
-    'class': TokenType(TokenTypes.CLASS, 'class', ':'),
-    'def': TokenType(TokenTypes.FUNCTION, 'def', ':'),
-    'if': TokenType(TokenTypes.IF, 'if', ':'),
-    'elif': TokenType(TokenTypes.ELIF, 'elif', ':'),
-    'else': TokenType(TokenTypes.ELSE, 'else', ':')
+    # 'import': TokenType(TokenTypes.IMPORT, 'import'),
+    # 'from': TokenType(TokenTypes.FROM_IMPORT, 'from'),
+    'class': TokenType(TokenTypes.CLASS, 'class', ':\n'),
+    'def': TokenType(TokenTypes.FUNCTION, 'def', ':\n'),
+    '@': TokenType(TokenTypes.DECORATOR, '@'),
+    # 'if': TokenType(TokenTypes.IF, 'if', ':'),
+    # 'elif': TokenType(TokenTypes.ELIF, 'elif', ':'),
+    # 'else': TokenType(TokenTypes.ELSE, 'else', ':')
 }
 
 multi_tokens = [token for token in start_tokens.keys() if len(token) > 1]
@@ -51,7 +53,65 @@ multi_tokens = [token for token in start_tokens.keys() if len(token) > 1]
 @dataclass
 class Token:
     type: TokenType
-    value: str
+    value: Union[str, Dict[str, Any]]
+
+    def __post_init__(self):
+        if self.type.represents is TokenTypes.FUNCTION:
+            self.__lex_as_function()
+
+    def __lex_as_function(self):
+        call: Optional[str] = None
+        arguments: Dict[str, Optional[Dict[str, str]]] = {}
+        return_type: Optional[str] = None
+
+        curr_str = ""
+        passed_function_token = False
+
+        for char in self.value:
+            curr_str += char
+
+            if char == " " and not passed_function_token:
+                curr_str = ""
+                passed_function_token = True
+            elif passed_function_token:
+                current = curr_str.strip()[:-1]
+                if char == "(":
+                    call = current
+                    curr_str = ""
+                elif char == "," or char == ")":
+                    argument_name: str = ""
+                    arg_props: Dict[str, str] = {}
+
+                    if split_by_annotation := current.split(":"):
+                        if len(split_by_annotation) == 2:
+                            argument_name = split_by_annotation[0].strip()
+                            arg_props["annotation"] = split_by_annotation[1].strip()
+
+                    if split_by_default := current.split("="):
+                        if len(split_by_default) == 2:
+                            if argument_name:
+                                arg_props["annotation"] = arg_props["annotation"].split("=")[0].strip()
+                            else:
+                                argument_name = split_by_default[0].strip()
+                            arg_props["default"] = split_by_default[1].strip()
+
+                    if not argument_name:
+                        argument_name = current.strip()
+
+                    if argument_name:
+                        arguments[argument_name] = arg_props
+                    curr_str = ""
+                elif curr_str.strip() == "->":
+                    return_type = ""
+                    curr_str = ""
+                elif return_type is not None and char != ":":
+                    return_type += char
+
+        self.value = {
+            "call": call,
+            "arguments": arguments,
+            "return_type": return_type
+        }
 
 
 class Lexer:

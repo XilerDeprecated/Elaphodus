@@ -4,6 +4,7 @@
 """The main script, so this is what does the hard work!"""
 import re
 from logging import basicConfig, DEBUG
+from pprint import pprint
 
 from click import group, option
 
@@ -24,11 +25,11 @@ def cli(verbose: bool):
 def generate(directory: str, match: str, out: str):
     """Generate the documentation"""
     directory = directory or "./"
-    match = re.compile(match or ".(py|go)")
+    match = re.compile(match or ".(py)")
 
     parser = Parser(directory, match)
     lexer = Lexer(parser.parse())
-    lexer.tokenize()
+    tokens = lexer.tokenize()
 
 
 if __name__ == "__main__":

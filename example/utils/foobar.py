@@ -9,7 +9,7 @@ class FooBar:
         return self.construct(self.amount)
 
     @staticmethod
-    def construct(amount: int):
+    def construct(amount: int) -> str:
         """
         Constructs a FooBar
 
