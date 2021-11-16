@@ -27,14 +27,38 @@ class Parser:
         print(self.files)
 
     def get_all_files(self):
-        return_dict: Dict[str, Set[str]] = dict(self.walk())
+        return_dict: Dict[str, Any] = {}
 
-        # TODO: read file content
+        def read_file(path: str):
+            with open(path, "r") as f:
+                return f.read()
+
+        for root, files in self.walk():
+            path_keys = root.split(os.sep)
+
+            loc = return_dict
+            for key in path_keys:
+                if key == ".":
+                    for file in files:
+                        loc[file] = read_file(os.path.join(self.root, file))
+                    continue
+
+                if key not in loc:
+                    loc[key] = {}
+                loc = loc[key]
+
+                if key != path_keys[-1]:
+                    continue
+
+                for file in files:
+                    loc.update({
+                        file: read_file(os.path.join(self.root, root, file))
+                    })
 
         return return_dict
 
     def walk(self) -> Generator[Tuple[str, Set[str]], Any, None]:
-        for root, subdirs, files in os.walk(self.root):
+        for root, _, files in os.walk(self.root):
             if not self.ignore.search(root):
                 continue
 
