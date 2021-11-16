@@ -14,7 +14,7 @@ class Parser:
     """
     Detects all files, and properly parses them.
 
-    With parsing we mean properly indexing, and lexing all files.
+    With parsing we mean properly indexing all files and their content.
     """
 
     def __init__(self, root: str, pattern: Pattern[str]):
@@ -23,17 +23,28 @@ class Parser:
 
         ignore = ("__pycache__",)
         self.ignore: Pattern[str] = re.compile(fr"^(?!.*{'|'.join(ignore)}).*$")
-        self.files: Dict[str, ...] = self.get_all_files()
-        print(self.files)
 
-    def get_all_files(self):
+    def __walk(self) -> Generator[Tuple[str, Set[str]], Any, None]:
+        for root, _, files in os.walk(self.root):
+            if not self.ignore.search(root):
+                continue
+
+            files = set(filter(
+                self.pattern.search,
+                filter(self.ignore.search, files)
+            ))
+            root = os.path.relpath(root, self.root)
+
+            yield root, files
+
+    def parse(self):
         return_dict: Dict[str, Any] = {}
 
         def read_file(path: str):
             with open(path, "r") as f:
                 return f.read()
 
-        for root, files in self.walk():
+        for root, files in self.__walk():
             path_keys = root.split(os.sep)
 
             loc = return_dict
@@ -56,16 +67,3 @@ class Parser:
                     })
 
         return return_dict
-
-    def walk(self) -> Generator[Tuple[str, Set[str]], Any, None]:
-        for root, _, files in os.walk(self.root):
-            if not self.ignore.search(root):
-                continue
-
-            files = set(filter(
-                self.pattern.search,
-                filter(self.ignore.search, files)
-            ))
-            root = os.path.relpath(root, self.root)
-
-            yield root, files

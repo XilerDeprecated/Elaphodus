@@ -8,7 +8,6 @@ The ultimate foo-bar experience, only one command away!
 Using ultibar is very easy, you can use it like this:
 `ultibar run`
 """
-
 from sys import argv
 
 import utils.foobar as foobar

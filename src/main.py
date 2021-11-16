@@ -7,7 +7,7 @@ from logging import basicConfig, DEBUG
 
 from click import group, option
 
-from . import MultiCommand, Parser
+from . import MultiCommand, Parser, Lexer
 
 
 @group(cls=MultiCommand)
@@ -27,6 +27,8 @@ def generate(directory: str, match: str, out: str):
     match = re.compile(match or ".(py|go)")
 
     parser = Parser(directory, match)
+    lexer = Lexer(parser.parse())
+    lexer.tokenize()
 
 
 if __name__ == "__main__":
