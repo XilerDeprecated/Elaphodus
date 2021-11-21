@@ -8,7 +8,6 @@ from pprint import pprint
 
 from click import group, option
 
-from src.utils.lexer import TokenTypes
 from . import MultiCommand, Parser, Lexer
 
 
@@ -31,6 +30,7 @@ def generate(directory: str, match: str, out: str):
     parser = Parser(directory, match)
     lexer = Lexer(parser.parse())
     tokens = lexer.tokenize()
+    pprint(tokens)
 
 
 if __name__ == "__main__":

@@ -10,9 +10,6 @@ class FooBar:
 
     @staticmethod
     def construct(amount: int) -> str:
-        """
-        Constructs a FooBar
-
         # TODO: Figure a way out to properly let users document parameters & return values
-        """
+        """Constructs a FooBar"""
         return ("foobar\n" * amount).strip()

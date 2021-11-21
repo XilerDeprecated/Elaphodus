@@ -40,16 +40,16 @@ class TokenType:
 start_tokens = {
     '#': TokenType(TokenTypes.COMMENT, '#'),
     '"""': TokenType(TokenTypes.MULTILINE_COMMENT, '"""', '"""'),
-    # 'import': TokenType(TokenTypes.IMPORT, 'import'),
-    # 'from': TokenType(TokenTypes.FROM_IMPORT, 'from'),
+    'import': TokenType(TokenTypes.IMPORT, 'import'),
+    'from': TokenType(TokenTypes.FROM_IMPORT, 'from'),
     'class': TokenType(TokenTypes.CLASS, 'class', ':\n'),
     'def': TokenType(TokenTypes.FUNCTION, 'def', ':\n'),
     '@': TokenType(TokenTypes.DECORATOR, '@'),
     '\'': TokenType(TokenTypes.CHAR, '\'', '\''),
     '"': TokenType(TokenTypes.STRING, '"', '"'),
-    # 'if': TokenType(TokenTypes.IF, 'if', ':'),
-    # 'elif': TokenType(TokenTypes.ELIF, 'elif', ':'),
-    # 'else': TokenType(TokenTypes.ELSE, 'else', ':')
+    'if': TokenType(TokenTypes.IF, 'if', ':'),
+    'elif': TokenType(TokenTypes.ELIF, 'elif', ':'),
+    'else': TokenType(TokenTypes.ELSE, 'else', ':')
 }
 
 multi_tokens = [token for token in start_tokens.keys() if len(token) > 1]
@@ -74,12 +74,10 @@ class Token:
     value: Union[str, Dict[str, Any]]
 
     def __post_init__(self):
-        if self.type.represents is TokenTypes.FUNCTION:
-            self.__lex_as_function()
-        elif self.type.represents is TokenTypes.CLASS:
-            self.__lex_as_class()
+        if cast := getattr(self, f"cast_to_{self.type.represents.value}".lower().replace('-', '_'), None):
+            cast()
 
-    def __lex_as_function(self):
+    def cast_to_function(self):  # sourcery no-metrics
         call: Optional[str] = None
         arguments: Dict[str, Optional[Dict[str, str]]] = {}
         return_type: Optional[str] = None
@@ -137,7 +135,7 @@ class Token:
             "return_type": return_type
         }
 
-    def __lex_as_class(self):
+    def cast_to_class(self):
         call = None
         parameters = {}
         has_passed_token = False
@@ -175,6 +173,18 @@ class Token:
             "call": call,
             "parameters": parameters
         }
+
+    def cast_to_comment(self):
+        self.value = self.value.strip()[1:].strip()
+
+    def cast_to_multiline_comment(self):
+        self.value = self.value.strip()[3:-3].strip()
+
+    def cast_to_char(self):
+        self.value = self.value.strip()[1:-1]
+
+    def cast_to_string(self):
+        self.cast_to_char()
 
 
 class Lexer:
