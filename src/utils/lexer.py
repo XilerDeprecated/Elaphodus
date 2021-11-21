@@ -186,6 +186,43 @@ class Token:
     def cast_to_string(self):
         self.cast_to_char()
 
+    def cast_to_import(self):
+        self.value = [v for v in self.value.split(" ") if v][1]
+
+    def cast_to_from_import(self):
+        curr_str = ""
+        module: Optional[str] = None
+        imports: List[str] = []
+
+        started_location = False
+        started_imports = False
+
+        for char in self.value:
+            if curr_str == "from" and char == " ":
+                curr_str = ""
+                started_location = True
+            elif not module and \
+                    started_location and \
+                    not started_imports and \
+                    char == " ":
+                module = curr_str.strip()
+                curr_str = ""
+            elif curr_str == "import" and char == " ":
+                curr_str = ""
+                started_imports = True
+            elif started_imports and char == ",":
+                imports.append(curr_str.strip())
+                curr_str = ""
+            else:
+                curr_str += char
+
+        imports.append(curr_str.strip())
+
+        self.value = {
+            "module": module,
+            "imports": imports
+        }
+
 
 class Lexer:
     def __init__(self, parsed: Dict[str, Any]):
