@@ -22,6 +22,9 @@ class TokenTypes(Enum):
     ELIF = "ELIF"
     ELSE = "ELSE"
 
+    CHAR = 'CHARACTER-STRING'
+    STRING = 'STRING'
+
 
 @dataclass()
 class TokenType:
@@ -42,6 +45,8 @@ start_tokens = {
     'class': TokenType(TokenTypes.CLASS, 'class', ':\n'),
     'def': TokenType(TokenTypes.FUNCTION, 'def', ':\n'),
     '@': TokenType(TokenTypes.DECORATOR, '@'),
+    '\'': TokenType(TokenTypes.CHAR, '\'', '\''),
+    '"': TokenType(TokenTypes.STRING, '"', '"'),
     # 'if': TokenType(TokenTypes.IF, 'if', ':'),
     # 'elif': TokenType(TokenTypes.ELIF, 'elif', ':'),
     # 'else': TokenType(TokenTypes.ELSE, 'else', ':')
@@ -135,7 +140,8 @@ class Token:
                 continue
             elif has_passed_token:
                 if char in ["(", ":"]:
-                    call = curr_str.strip()
+                    if not parameters:
+                        call = curr_str.strip()
                     curr_str = ""
                     continue
                 elif char in [",", ")"]:
@@ -146,6 +152,9 @@ class Token:
                     else:
                         parameters[len(parameters)] = parameter_split[0].strip()
                     continue
+
+            if char == ":":
+                break
 
             curr_str += char
 
