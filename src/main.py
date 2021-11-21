@@ -8,7 +8,7 @@ from pprint import pprint
 
 from click import group, option
 
-from . import MultiCommand, Parser, Lexer
+from . import MultiCommand, Parser, Lexer, Transpiler
 
 
 @group(cls=MultiCommand)
@@ -29,8 +29,8 @@ def generate(directory: str, match: str, out: str):
 
     parser = Parser(directory, match)
     lexer = Lexer(parser.parse())
-    tokens = lexer.tokenize()
-    pprint(tokens)
+    transpiler = Transpiler(lexer.tokenize())
+    pprint(transpiler.transpile())
 
 
 if __name__ == "__main__":

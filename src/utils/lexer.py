@@ -285,17 +285,17 @@ class Lexer:
 
         return tokens
 
+    def __tokenize(self, content: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            key: self.__lex_content(value)
+            for key, value in content.items()
+        }
+
     def __lex_content(self, content: Union[str, Dict[str, Any]]) -> Union[List[Token], Dict[str, Any]]:
         if isinstance(content, str):
             return self.lex(content)
-        else:
-            return {
-                key: self.__lex_content(value)
-                for key, value in content.items()
-            }
+
+        return self.__tokenize(content)
 
     def tokenize(self):
-        return {
-            key: self.__lex_content(value)
-            for key, value in self.parsed.items()
-        }
+        return self.__tokenize(self.parsed)

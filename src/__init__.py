@@ -4,3 +4,4 @@
 from .click_specific.AliasGroup import MultiCommand
 from .utils.lexer import Lexer
 from .utils.parser import Parser
+from .utils.transpiler import Transpiler
