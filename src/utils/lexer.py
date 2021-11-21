@@ -55,6 +55,19 @@ start_tokens = {
 multi_tokens = [token for token in start_tokens.keys() if len(token) > 1]
 
 
+def remove_unique_start(tokens: List[str]) -> List[str]:
+    chars = {token[0]: 0 for token in tokens}
+
+    for token in tokens:
+        chars[token[0]] += 1
+
+    return [token for token in tokens if chars[token[0]] != 1]
+
+
+collision_tokens = remove_unique_start(list(start_tokens.keys()))
+collision_tokens = sorted(collision_tokens, key=len, reverse=True)
+
+
 @dataclass
 class Token:
     type: TokenType
@@ -208,9 +221,13 @@ class Lexer:
                     else:
                         curr_content = char
 
-                    if curr_content in start_tokens:
-                        curr_token_type = start_tokens[curr_content or char]
-                # Handle single-char tokens
+                    has_collision = any(
+                        col_token.startswith(curr_content + line[column + 1])
+                        for col_token in collision_tokens
+                    )
+
+                    if not has_collision and curr_content in start_tokens:
+                        curr_token_type = start_tokens[curr_content]
                 elif char in start_tokens:
                     curr_content = char
                     curr_token_type = start_tokens[char]

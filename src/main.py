@@ -4,6 +4,7 @@
 """The main script, so this is what does the hard work!"""
 import re
 from logging import basicConfig, DEBUG
+from pprint import pprint
 
 from click import group, option
 
