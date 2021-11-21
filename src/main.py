@@ -30,6 +30,7 @@ def generate(directory: str, match: str, out: str):
     parser = Parser(directory, match)
     lexer = Lexer(parser.parse())
     tokens = lexer.tokenize()
+    pprint(tokens)
 
 
 if __name__ == "__main__":

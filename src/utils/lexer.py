@@ -58,6 +58,8 @@ class Token:
     def __post_init__(self):
         if self.type.represents is TokenTypes.FUNCTION:
             self.__lex_as_function()
+        elif self.type.represents is TokenTypes.CLASS:
+            self.__lex_as_class()
 
     def __lex_as_function(self):
         call: Optional[str] = None
@@ -78,22 +80,26 @@ class Token:
                 if char == "(":
                     call = current
                     curr_str = ""
-                elif char == "," or char == ")":
+                elif char in [",", ")"]:
                     argument_name: str = ""
                     arg_props: Dict[str, str] = {}
 
-                    if split_by_annotation := current.split(":"):
-                        if len(split_by_annotation) == 2:
-                            argument_name = split_by_annotation[0].strip()
-                            arg_props["annotation"] = split_by_annotation[1].strip()
+                    if (
+                            (split_by_annotation := current.split(":"))
+                            and len(split_by_annotation) == 2
+                    ):
+                        argument_name = split_by_annotation[0].strip()
+                        arg_props["annotation"] = split_by_annotation[1].strip()
 
-                    if split_by_default := current.split("="):
-                        if len(split_by_default) == 2:
-                            if argument_name:
-                                arg_props["annotation"] = arg_props["annotation"].split("=")[0].strip()
-                            else:
-                                argument_name = split_by_default[0].strip()
-                            arg_props["default"] = split_by_default[1].strip()
+                    if (
+                            (split_by_default := current.split("="))
+                            and len(split_by_default) == 2
+                    ):
+                        if argument_name:
+                            arg_props["annotation"] = arg_props["annotation"].split("=")[0].strip()
+                        else:
+                            argument_name = split_by_default[0].strip()
+                        arg_props["default"] = split_by_default[1].strip()
 
                     if not argument_name:
                         argument_name = current.strip()
@@ -111,6 +117,41 @@ class Token:
             "call": call,
             "arguments": arguments,
             "return_type": return_type
+        }
+
+    def __lex_as_class(self):
+        call = None
+        parameters = {}
+        has_passed_token = False
+
+        curr_str = ""
+
+        for char in self.value:
+            if not has_passed_token \
+                    and curr_str == "class" \
+                    and char == " ":
+                has_passed_token = True
+                curr_str = ""
+                continue
+            elif has_passed_token:
+                if char in ["(", ":"]:
+                    call = curr_str.strip()
+                    curr_str = ""
+                    continue
+                elif char in [",", ")"]:
+                    parameter_split = curr_str.split("=")
+
+                    if len(parameter_split) == 2:
+                        parameters[parameter_split[0].strip()] = parameter_split[1].strip()
+                    else:
+                        parameters[len(parameters)] = parameter_split[0].strip()
+                    continue
+
+            curr_str += char
+
+        self.value = {
+            "call": call,
+            "parameters": parameters
         }
 
 
